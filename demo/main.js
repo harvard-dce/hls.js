@@ -25,6 +25,8 @@ if (demoConfig) {
 const hlsjsDefaults = {
   debug: true,
   enableWorker: true,
+  lowLatencyMode: false,
+  progressive: false,
   liveBackBufferLength: 60 * 15
 };
 

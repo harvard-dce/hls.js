@@ -8,7 +8,7 @@ import type { RequiredProperties } from '../types/general';
 export function findFirstFragWithCC (fragments: Fragment[], cc: number) {
   let firstFrag: Fragment | null = null;
 
-  for (let i = 0; i < fragments.length; i += 1) {
+  for (let i = 0, len = fragments.length; i < len; i++) {
     const currentFrag = fragments[i];
     if (currentFrag && currentFrag.cc === cc) {
       firstFrag = currentFrag;
@@ -49,14 +49,24 @@ export function findDiscontinuousReferenceFrag (prevDetails: LevelDetails, curDe
   return prevStartFrag;
 }
 
+function adjustFragmentStart (frag: Fragment, sliding: number) {
+  if (frag) {
+    const start = frag.start + sliding;
+    frag.start = frag.startPTS = start;
+    frag.endPTS = start + frag.duration;
+  }
+}
+
 export function adjustPts (sliding: number, details: LevelDetails) {
-  details.fragments.forEach((frag) => {
-    if (frag) {
-      const start = frag.start + sliding;
-      frag.start = frag.startPTS = start;
-      frag.endPTS = start + frag.duration;
-    }
-  });
+  // Update segments
+  const fragments = details.fragments;
+  for (let i = 0, len = fragments.length; i < len; i++) {
+    adjustFragmentStart(fragments[i], sliding);
+  }
+  // Update LL-HLS parts at the end of the playlist
+  if (details.fragmentHint) {
+    adjustFragmentStart(details.fragmentHint, sliding);
+  }
   details.PTSKnown = true;
 }
 

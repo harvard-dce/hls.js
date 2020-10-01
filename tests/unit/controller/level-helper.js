@@ -95,11 +95,11 @@ describe('LevelHelper Tests', function () {
     });
   });
 
-  describe('mergeSubtitlePlaylists', function () {
+  describe('merge subtitle playlists', function () {
     it('transfers start times where segments overlap, and extrapolates the start of any new segment', function () {
       const oldPlaylist = generatePlaylist([1, 2, 3, 4]); // start times: 0, 5, 10, 15
       const newPlaylist = generatePlaylist([2, 3, 4, 5]);
-      LevelHelper.mergeSubtitlePlaylists(oldPlaylist, newPlaylist);
+      LevelHelper.mergeDetails(oldPlaylist, newPlaylist);
       const actual = newPlaylist.fragments.map(f => f.start);
       expect(actual).to.deep.equal([5, 10, 15, 20]);
     });
@@ -107,17 +107,9 @@ describe('LevelHelper Tests', function () {
     it('does not change start times when there is no segment overlap', function () {
       const oldPlaylist = generatePlaylist([1, 2, 3]);
       const newPlaylist = generatePlaylist([5, 6, 7]);
-      LevelHelper.mergeSubtitlePlaylists(oldPlaylist, newPlaylist);
+      LevelHelper.mergeDetails(oldPlaylist, newPlaylist);
       const actual = newPlaylist.fragments.map(f => f.start);
       expect(actual).to.deep.equal([0, 5, 10]);
-    });
-
-    it('adjusts sliding using the reference start if there is no segment overlap', function () {
-      const oldPlaylist = generatePlaylist([1, 2, 3]);
-      const newPlaylist = generatePlaylist([5, 6, 7]);
-      LevelHelper.mergeSubtitlePlaylists(oldPlaylist, newPlaylist, 30);
-      const actual = newPlaylist.fragments.map(f => f.start);
-      expect(actual).to.deep.equal([30, 35, 40]);
     });
 
     it('does not extrapolate if the new playlist starts before the old', function () {
@@ -126,7 +118,7 @@ describe('LevelHelper Tests', function () {
         f.start += 10;
       });
       const newPlaylist = generatePlaylist([1, 2, 3]);
-      LevelHelper.mergeSubtitlePlaylists(oldPlaylist, newPlaylist);
+      LevelHelper.mergeDetails(oldPlaylist, newPlaylist);
       const actual = newPlaylist.fragments.map(f => f.start);
       expect(actual).to.deep.equal([0, 5, 10]);
     });

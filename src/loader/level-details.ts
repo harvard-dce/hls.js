@@ -4,12 +4,13 @@ import type AttrList from '../utils/attr-list';
 const DEFAULT_TARGET_DURATION = 10;
 
 export default class LevelDetails {
-  public PTSKnown?: boolean;
+  public PTSKnown: boolean = false;
   public availabilityDelay?: number; // Manifest reload synchronization
   public averagetargetduration?: number;
   public endCC: number = 0;
   public endSN: number = 0;
   public fragments: Fragment[];
+  public fragmentHint?: Fragment;
   public partList: Part[] | null = null;
   public initSegment: Fragment | null = null;
   public lastModified?: number;
@@ -39,6 +40,7 @@ export default class LevelDetails {
   public preloadHint?: AttrList;
   public renditionReports?: AttrList[];
   public tuneInGoal: number = 0;
+  public deltaUpdateFailed?: boolean;
 
   constructor (baseUrl) {
     this.fragments = [];
@@ -64,7 +66,10 @@ export default class LevelDetails {
   }
 
   get hasProgramDateTime (): boolean {
-    return !!this.fragments[0] && Number.isFinite(this.fragments[0].programDateTime as number);
+    if (this.fragments.length) {
+      return Number.isFinite(this.fragments[this.fragments.length - 1].programDateTime as number);
+    }
+    return false;
   }
 
   get levelTargetDuration (): number {
@@ -79,14 +84,14 @@ export default class LevelDetails {
   }
 
   get lastPartIndex (): number {
-    if (this.partList) {
+    if (this.partList?.length) {
       return this.partList[this.partList.length - 1].index;
     }
     return -1;
   }
 
   get lastPartSn (): number {
-    if (this.partList) {
+    if (this.partList?.length) {
       return this.partList[this.partList.length - 1].fragment.sn as number;
     }
     return this.endSN;

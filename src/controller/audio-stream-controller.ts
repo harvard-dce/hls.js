@@ -399,9 +399,10 @@ class AudioStreamController extends BaseStreamController implements ComponentAPI
     const track = levels[trackId];
     let sliding = 0;
     if (newDetails.live) {
-      sliding = this.mergeLivePlaylists(track.details, newDetails);
-    } else {
-      newDetails.PTSKnown = false;
+      if (newDetails.deltaUpdateFailed) {
+        return;
+      }
+      sliding = this.alignPlaylists(newDetails, track.details);
     }
     track.details = newDetails;
     this.levelLastLoaded = trackId;

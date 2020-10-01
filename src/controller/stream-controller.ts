@@ -5,7 +5,6 @@ import TransmuxerInterface from '../demux/transmuxer-interface';
 import { Events } from '../events';
 import { FragmentState, FragmentTracker } from './fragment-tracker';
 import Fragment, { ElementaryStreamTypes } from '../loader/fragment';
-import PlaylistLoader from '../loader/playlist-loader';
 import TimeRanges from '../utils/time-ranges';
 import { ErrorDetails } from '../errors';
 import { logger } from '../utils/logger';
@@ -587,12 +586,13 @@ export default class StreamController extends BaseStreamController implements Ne
     const curLevel = levels[newLevelId];
     let sliding = 0;
     if (newDetails.live) {
-      sliding = this.mergeLivePlaylists(curLevel.details, newDetails);
+      if (newDetails.deltaUpdateFailed) {
+        return;
+      }
+      sliding = this.alignPlaylists(newDetails, curLevel.details);
       if (sliding) {
         this._liveSyncPosition = this.computeLivePosition(sliding, newDetails);
       }
-    } else {
-      newDetails.PTSKnown = false;
     }
     // override level info
     curLevel.details = newDetails;
