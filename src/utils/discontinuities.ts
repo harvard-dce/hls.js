@@ -97,7 +97,7 @@ export function alignStream (lastFrag: Fragment | null, lastLevel: Level | null,
  * @param lastLevel - The details of the last loaded level
  * @param details - The details of the new level
  */
-export function alignDiscontinuities (lastFrag: Fragment | null, details: LevelDetails, lastLevel: Level | null) {
+function alignDiscontinuities (lastFrag: Fragment | null, details: LevelDetails, lastLevel: Level | null) {
   if (shouldAlignOnDiscontinuities(lastFrag, lastLevel, details)) {
     const referenceFrag = findDiscontinuousReferenceFrag(lastLevel.details, details);
     if (referenceFrag) {

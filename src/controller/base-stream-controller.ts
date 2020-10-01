@@ -62,6 +62,7 @@ export default class BaseStreamController extends TaskLoop {
   protected levelLastLoaded: number | null = null;
   protected startFragRequested: boolean = false;
   protected decrypter: Decrypter;
+  protected initPTS: Array<number> = [];
 
   protected readonly logPrefix: string = '';
 
