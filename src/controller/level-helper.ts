@@ -232,8 +232,7 @@ export function adjustSliding (oldDetails: LevelDetails, newDetails: LevelDetail
   const delta = newDetails.startSN - oldDetails.startSN;
   const oldFragments = oldDetails.fragments;
   const newFragments = newDetails.fragments;
-
-  if (delta < 0 || delta > oldFragments.length) {
+  if (delta < 0 || delta >= oldFragments.length) {
     return;
   }
   const playlistStartOffset = oldFragments[delta].start;

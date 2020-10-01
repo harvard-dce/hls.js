@@ -93,6 +93,14 @@ describe('LevelHelper Tests', function () {
       const actual = newPlaylist.fragments.map(f => f.start);
       expect(actual).to.deep.equal([0, 5, 10]);
     });
+
+    it('does not apply sliding when segments meet but do not overlap', function () {
+      const oldPlaylist = generatePlaylist([1, 2, 3]);
+      const newPlaylist = generatePlaylist([4, 5, 6]);
+      LevelHelper.adjustSliding(oldPlaylist, newPlaylist);
+      const actual = newPlaylist.fragments.map(f => f.start);
+      expect(actual).to.deep.equal([0, 5, 10]);
+    });
   });
 
   describe('merge subtitle playlists', function () {
