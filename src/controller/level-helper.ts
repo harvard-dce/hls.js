@@ -210,37 +210,39 @@ export function mergeDetails (oldDetails: LevelDetails, newDetails: LevelDetails
 }
 
 export function mapFragmentIntersection (oldDetails: LevelDetails, newDetails: LevelDetails, intersectionFn): void {
-  const start = Math.max(oldDetails.startSN, newDetails.startSN) - newDetails.startSN;
-  const end = Math.min(oldDetails.endSN, newDetails.endSN) - newDetails.startSN;
-  const delta = newDetails.startSN - oldDetails.startSN;
   const skippedSegments = newDetails.skippedSegments;
+  const start = Math.max(oldDetails.startSN, newDetails.startSN) - newDetails.startSN;
+  const end = (skippedSegments ? newDetails.endSN : Math.min(oldDetails.endSN, newDetails.endSN)) - newDetails.startSN;
+  const delta = newDetails.startSN - oldDetails.startSN;
 
   for (let i = start; i <= end; i++) {
     const oldFrag = oldDetails.fragments[delta + i];
     let newFrag = newDetails.fragments[i];
-    if (!oldFrag) {
-      break;
-    } else if (skippedSegments && !newFrag && i < skippedSegments) {
+    if (skippedSegments && !newFrag && i < skippedSegments) {
       // Fill in skipped segments in delta playlist
       newFrag = newDetails.fragments[i] = oldFrag;
     }
-    intersectionFn(oldFrag, newFrag, i);
+    if (oldFrag && newFrag) {
+      intersectionFn(oldFrag, newFrag, i);
+    }
   }
 }
 
 export function adjustSliding (oldDetails: LevelDetails, newDetails: LevelDetails): void {
-  const delta = newDetails.startSN - oldDetails.startSN;
+  const delta = newDetails.startSN + newDetails.skippedSegments - oldDetails.startSN;
   const oldFragments = oldDetails.fragments;
   const newFragments = newDetails.fragments;
   if (delta < 0 || delta >= oldFragments.length) {
     return;
   }
   const playlistStartOffset = oldFragments[delta].start;
-  for (let i = 0; i < newFragments.length; i++) {
-    newFragments[i].start += playlistStartOffset;
-  }
-  if (newDetails.fragmentHint) {
-    newDetails.fragmentHint.start += playlistStartOffset;
+  if (playlistStartOffset) {
+    for (let i = newDetails.skippedSegments; i < newFragments.length; i++) {
+      newFragments[i].start += playlistStartOffset;
+    }
+    if (newDetails.fragmentHint) {
+      newDetails.fragmentHint.start += playlistStartOffset;
+    }
   }
 }
 

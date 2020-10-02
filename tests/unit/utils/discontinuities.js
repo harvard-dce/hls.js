@@ -239,19 +239,6 @@ describe('level-helper', function () {
     expect(actual).to.be.false;
   });
 
-  it('should not align when there is no previous level', function () {
-    const curDetails = {
-      startCC: 1,
-      endCC: 1
-    };
-    const lastFrag = {
-      cc: 1
-    };
-
-    const actual = shouldAlignOnDiscontinuities(lastFrag, null, curDetails);
-    expect(actual).to.be.false;
-  });
-
   it('should not align when there are no previous level details', function () {
     const lastLevel = {
     };
@@ -264,18 +251,6 @@ describe('level-helper', function () {
     };
 
     const actual = shouldAlignOnDiscontinuities(lastFrag, lastLevel, curDetails);
-    expect(actual).to.be.false;
-  });
-
-  it('should not align when there are no current level details', function () {
-    const lastLevel = {
-      details: {}
-    };
-    const lastFrag = {
-      cc: 1
-    };
-
-    const actual = shouldAlignOnDiscontinuities(lastFrag, lastLevel, null);
     expect(actual).to.be.false;
   });
 });

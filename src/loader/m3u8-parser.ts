@@ -253,10 +253,10 @@ export default class M3U8Parser {
           break;
         case 'SKIP': {
           const skipAttrs = new AttrList(value1);
-          const skippedSegments = level.skippedSegments = skipAttrs.decimalInteger('SKIPPED-SEGMENTS');
-          if (skippedSegments) {
-            // FIXME: This is a problem with playlist updates are delayed enough to create a gap
-            // This will result in fragments[] containing undefined values, which we will fill in later
+          const skippedSegments = skipAttrs.decimalInteger('SKIPPED-SEGMENTS');
+          if (Number.isFinite(skippedSegments)) {
+            level.skippedSegments = skippedSegments;
+            // This will result in fragments[] containing undefined values, which we will fill in with `mergeDetails`
             for (let i = skippedSegments; i--;) {
               fragments.unshift(null);
             }

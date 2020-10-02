@@ -4,6 +4,7 @@ import type Fragment from '../loader/fragment';
 import type LevelDetails from '../loader/level-details';
 import type { Level } from '../types/level';
 import type { RequiredProperties } from '../types/general';
+import { adjustSliding } from '../controller/level-helper';
 
 export function findFirstFragWithCC (fragments: Fragment[], cc: number) {
   let firstFrag: Fragment | null = null;
@@ -19,14 +20,13 @@ export function findFirstFragWithCC (fragments: Fragment[], cc: number) {
   return firstFrag;
 }
 
-export function shouldAlignOnDiscontinuities (lastFrag: Fragment | null, lastLevel: Level | null, details: LevelDetails): lastLevel is RequiredProperties<Level, 'details'> {
-  let shouldAlign = false;
-  if (lastLevel?.details && details) {
+export function shouldAlignOnDiscontinuities (lastFrag: Fragment | null, lastLevel: Level, details: LevelDetails): lastLevel is RequiredProperties<Level, 'details'> {
+  if (lastLevel.details) {
     if (details.endCC > details.startCC || (lastFrag && lastFrag.cc < details.startCC)) {
-      shouldAlign = true;
+      return true;
     }
   }
-  return shouldAlign;
+  return false;
 }
 
 // Find the first frag in the previous level which matches the CC of the first frag of the new level
@@ -81,12 +81,19 @@ export function adjustPts (sliding: number, details: LevelDetails) {
  * @param details
  */
 export function alignStream (lastFrag: Fragment | null, lastLevel: Level | null, details: LevelDetails) {
+  if (!lastLevel) {
+    return;
+  }
   alignDiscontinuities(lastFrag, details, lastLevel);
-  if (!details.PTSKnown && lastLevel) {
+  if (!details.PTSKnown) {
     // If the PTS wasn't figured out via discontinuity sequence that means there was no CC increase within the level.
     // Aligning via Program Date Time should therefore be reliable, since PDT should be the same within the same
     // discontinuity sequence.
     alignPDT(details, lastLevel.details);
+  }
+  if (!details.PTSKnown && lastLevel.details) {
+    // Try to align on sn so that we pick a better start fragment
+    adjustSliding(lastLevel.details, details);
   }
 }
 
@@ -97,11 +104,11 @@ export function alignStream (lastFrag: Fragment | null, lastLevel: Level | null,
  * @param lastLevel - The details of the last loaded level
  * @param details - The details of the new level
  */
-function alignDiscontinuities (lastFrag: Fragment | null, details: LevelDetails, lastLevel: Level | null) {
+function alignDiscontinuities (lastFrag: Fragment | null, details: LevelDetails, lastLevel: Level) {
   if (shouldAlignOnDiscontinuities(lastFrag, lastLevel, details)) {
     const referenceFrag = findDiscontinuousReferenceFrag(lastLevel.details, details);
-    if (referenceFrag) {
-      logger.log('Adjusting PTS using last level due to CC increase within current level');
+    if (referenceFrag?.start) {
+      logger.log(`Adjusting PTS using last level due to CC increase within current level ${details.url}`);
       adjustPts(referenceFrag.start, details);
     }
   }
@@ -126,7 +133,7 @@ export function alignPDT (details: LevelDetails, lastDetails: LevelDetails | und
     // date diff is in ms. frag.start is in seconds
     const sliding = (newPDT - lastPDT) / 1000 + lastDetails.fragments[0].start;
     if (sliding && Number.isFinite(sliding)) {
-      logger.log(`adjusting PTS using programDateTime delta ${newPDT - lastPDT}ms, sliding:${sliding.toFixed(3)}`);
+      logger.log(`Adjusting PTS using programDateTime delta ${newPDT - lastPDT}ms, sliding:${sliding.toFixed(3)} ${details.url} `);
       adjustPts(sliding, details);
     }
   }
